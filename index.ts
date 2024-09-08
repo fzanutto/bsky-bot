@@ -9,6 +9,12 @@ const session = new CredentialSession(new URL("https://bsky.social"));
 
 const agent = new Agent(session);
 
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 async function getFileData() {
   const frames = fs.readdirSync(path.join(__dirname, "frames"));
   const nextFrame = frames[0];
@@ -32,11 +38,9 @@ async function login() {
   });
 }
 
-async function main() {
-  const [fileData, _loginResult] = await Promise.all([getFileData(), login()]);
-
+async function sendPost() {
   const { season, episode, currentFrameNumber, totalFrames, blob, nextFrame } =
-    fileData;
+    await getFileData();
 
   const response = await agent.uploadBlob(blob);
 
@@ -61,5 +65,25 @@ async function main() {
   console.log(postText);
 }
 
+async function main() {
+  while (true) {
+    try {
+      await login();
+      await sendPost();
+      await sendPost();
+      await sendPost();
+      await session.logout();
+    } catch (error) {
+      console.log(error);
+    }
+
+    console.log("Waiting 15 minutes...", new Date());
+    await sleep(1000 * 60 * 15);
+  }
+}
+
 main();
 
+// ffmpeg -r 1 -i .\s01e01.mp4 -r 1 "s01e01_%04d.png"
+// ffmpeg -i s01e01.mp4 -r 3 output.mp4
+// ffmpeg -i .\s01e01.mp4 -c copy -an output.mp4
