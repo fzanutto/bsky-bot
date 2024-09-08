@@ -6,13 +6,23 @@ import fs from "node:fs";
 configDotenv();
 
 const session = new CredentialSession(new URL("https://bsky.social"));
-
 const agent = new Agent(session);
+
+const WARN_FRAMES_THRESHOLD = 100;
+const POST_INTERVAL = 1000 * 60 * 15; // 15 minutes
+const FRAMES_PER_ITERATION = 3;
 
 function sleep(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+async function warnAboutFewFrames() {
+  const frames = fs.readdirSync(path.join(__dirname, "frames"));
+  if (frames.length < WARN_FRAMES_THRESHOLD) {
+    sendMessage(`Menos de ${WARN_FRAMES_THRESHOLD} frames no diretório. (${frames.length})`);
+  }
 }
 
 async function getFileData() {
@@ -31,10 +41,22 @@ async function getFileData() {
   return { season, episode, currentFrameNumber, totalFrames, blob, nextFrame };
 }
 
-async function login() {
+export async function login() {
   await session.login({
     identifier: process.env.BLUESKY_USERNAME!,
     password: process.env.BLUESKY_PASSWORD!,
+  });
+}
+
+async function sendMessage(text: string) {
+  const proxy = agent.withProxy("bsky_chat", "did:web:api.bsky.chat");
+  const convo = await proxy.chat.bsky.convo.getConvoForMembers({
+    members: [process.env.USER_DID!],
+  });
+
+  return proxy.chat.bsky.convo.sendMessage({
+    convoId: convo.data.convo.id,
+    message: { text },
   });
 }
 
@@ -69,16 +91,18 @@ async function main() {
   while (true) {
     try {
       await login();
-      await sendPost();
-      await sendPost();
-      await sendPost();
+      for (let i = 0; i < FRAMES_PER_ITERATION; i++) {
+        await sendPost();
+      }
+      await warnAboutFewFrames();
       await session.logout();
     } catch (error) {
       console.log(error);
+      sendMessage((error as Error).toString());
     }
 
-    console.log("Waiting 15 minutes...", new Date());
-    await sleep(1000 * 60 * 15);
+    console.log("Waiting until next post...", new Date());
+    await sleep(POST_INTERVAL);
   }
 }
 
