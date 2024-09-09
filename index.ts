@@ -21,12 +21,27 @@ function sleep(ms: number) {
 async function warnAboutFewFrames() {
   const frames = fs.readdirSync(path.join(__dirname, "frames"));
   if (frames.length < WARN_FRAMES_THRESHOLD) {
-    await sendMessage(`Menos de ${WARN_FRAMES_THRESHOLD} frames no diretório. (${frames.length})`);
+    await sendMessage(
+      `Menos de ${WARN_FRAMES_THRESHOLD} frames no diretório. (${frames.length})`
+    );
   }
 }
 
 async function getFileData() {
-  const frames = fs.readdirSync(path.join(__dirname, "frames"));
+  const frames = fs.readdirSync(path.join(__dirname, "frames")).sort((a, b) => {
+    const seasonA = a.slice(1, 3);
+    const episodeA = a.slice(4, 6);
+    const frameA = a.slice(7, 11);
+    const seasonB = b.slice(1, 3);
+    const episodeB = b.slice(4, 6);
+    const frameB = b.slice(7, 11);
+    return (
+      seasonA.localeCompare(seasonB) ||
+      episodeA.localeCompare(episodeB) ||
+      frameA.localeCompare(frameB)
+    );
+  });
+
   const nextFrame = frames[0];
   const lastFrame = frames[frames.length - 1];
 
@@ -95,10 +110,11 @@ async function main() {
         await sendPost();
       }
       await warnAboutFewFrames();
-      await session.logout();
     } catch (error) {
       console.log(error);
-      sendMessage((error as Error).toString());
+      await sendMessage((error as Error).toString());
+    } finally {
+      await session.logout();
     }
 
     console.log("Waiting until next post...", new Date());
