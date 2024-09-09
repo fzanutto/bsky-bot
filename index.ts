@@ -113,9 +113,9 @@ async function main() {
 
   console.log("Waiting until next post...", new Date());
 }
-
+console.log("Running bot");
 main();
-
+console.log("Bot ran");
 // ffmpeg -r 1 -i .\s01e01.mp4 -r 1 "s01e01_%04d.png"
 // ffmpeg -i s01e01.mp4 -r 3 output.mp4
 // ffmpeg -i .\s01e01.mp4 -c copy -an output.mp4
