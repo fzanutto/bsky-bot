@@ -3,7 +3,9 @@ import { configDotenv } from "dotenv";
 import path from "node:path";
 import fs from "node:fs";
 
-configDotenv();
+configDotenv({
+  path: path.join(__dirname, ".env"),
+});
 
 const session = new CredentialSession(new URL("https://bsky.social"));
 const agent = new Agent(session);
