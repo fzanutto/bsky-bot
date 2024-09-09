@@ -3,8 +3,5 @@
     "@atproto/api": "^0.13.6",
     "dotenv": "^16.4.5",
     "typescript": "^5.5.4"
-  },
-  "scripts": {
-    "start": "npx ts-node index.ts"
   }
 }

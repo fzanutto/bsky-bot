@@ -21,7 +21,7 @@ function sleep(ms: number) {
 async function warnAboutFewFrames() {
   const frames = fs.readdirSync(path.join(__dirname, "frames"));
   if (frames.length < WARN_FRAMES_THRESHOLD) {
-    sendMessage(`Menos de ${WARN_FRAMES_THRESHOLD} frames no diretório. (${frames.length})`);
+    await sendMessage(`Menos de ${WARN_FRAMES_THRESHOLD} frames no diretório. (${frames.length})`);
   }
 }
 
