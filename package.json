@@ -1,5 +1,4 @@
 {
-  "module": "src/index.ts",
   "dependencies": {
     "@atproto/api": "^0.13.6",
     "dotenv": "^16.4.5",
