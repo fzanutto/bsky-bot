@@ -118,10 +118,10 @@ async function main() {
       if (session.hasSession) {
         await sendMessage((error as Error).toString());
       }
-    } finally {
-      console.log("Waiting until next post...", new Date());
-      await sleep(POST_INTERVAL);
     }
+
+    console.log("Waiting until next post...", new Date());
+    await sleep(POST_INTERVAL);
   }
 }
 
