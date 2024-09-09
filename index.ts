@@ -105,10 +105,11 @@ async function sendPost() {
 }
 
 async function main() {
-  await login();
-
   while (true) {
     try {
+      if (!session.hasSession) {
+        await login();
+      }
       for (let i = 0; i < FRAMES_PER_ITERATION; i++) {
         await sendPost();
       }
@@ -120,7 +121,7 @@ async function main() {
       }
     }
 
-    console.log("Waiting until next post...", new Date());
+    console.log("Waiting until next post...", new Date().toISOString());
     await sleep(POST_INTERVAL);
   }
 }
