@@ -11,7 +11,14 @@ const session = new CredentialSession(new URL("https://bsky.social"));
 const agent = new Agent(session);
 
 const WARN_FRAMES_THRESHOLD = 100;
+const POST_INTERVAL = 1000 * 60 * 15; // 15 minutes
 const FRAMES_PER_ITERATION = 3;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 async function warnAboutFewFrames() {
   const frames = fs.readdirSync(path.join(__dirname, "frames"));
@@ -98,24 +105,25 @@ async function sendPost() {
 }
 
 async function main() {
-  try {
-    await login();
-    for (let i = 0; i < FRAMES_PER_ITERATION; i++) {
-      await sendPost();
-    }
-    await warnAboutFewFrames();
-  } catch (error) {
-    console.log(error);
-    await sendMessage((error as Error).toString());
-  } finally {
-    await session.logout();
-  }
+  await login();
 
-  console.log("Waiting until next post...", new Date());
+  while (true) {
+    try {
+      for (let i = 0; i < FRAMES_PER_ITERATION; i++) {
+        await sendPost();
+      }
+      await warnAboutFewFrames();
+    } catch (error) {
+      console.log(error);
+      if (session.hasSession) {
+        await sendMessage((error as Error).toString());
+      }
+    } finally {
+      console.log("Waiting until next post...", new Date());
+      await sleep(POST_INTERVAL);
+    }
+  }
 }
-console.log("Running bot");
+
 main();
-console.log("Bot ran");
-// ffmpeg -r 1 -i .\s01e01.mp4 -r 1 "s01e01_%04d.png"
-// ffmpeg -i s01e01.mp4 -r 3 output.mp4
-// ffmpeg -i .\s01e01.mp4 -c copy -an output.mp4
+
