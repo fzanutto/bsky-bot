@@ -81,7 +81,7 @@ async function sendPost() {
 
   const response = await agent.uploadBlob(blob);
 
-  const postText = `Temporada ${season} Episódio ${episode} - Frame ${currentFrameNumber} de ${totalFrames}`;
+  const postText = `Temporada ${season} Episódio ${episode} - Frame ${currentFrameNumber}`;
 
   await agent.post({
     text: postText,
