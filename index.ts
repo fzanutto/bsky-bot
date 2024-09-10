@@ -45,12 +45,18 @@ async function getFileData() {
   });
 
   const nextFrame = frames[0];
-  const lastFrame = frames[frames.length - 1];
-
+  
   const season = nextFrame.slice(1, 3);
   const episode = nextFrame.slice(4, 6);
   const currentFrameNumber = parseInt(nextFrame.slice(7, 11));
-  const totalFrames = lastFrame.slice(7, 11);
+
+  const lastFrame = frames.findLast((frame) => {
+    const frameSeason = frame.slice(1, 3);
+    const frameEpisode = frame.slice(4, 6);
+    return season === frameSeason && episode === frameEpisode;
+  })
+
+  const totalFrames = parseInt(lastFrame!.slice(7, 11));
 
   const file = fs.readFileSync(path.join(__dirname, "frames", nextFrame));
 
@@ -83,7 +89,7 @@ async function sendPost() {
 
   const response = await agent.uploadBlob(blob);
 
-  const postText = `Temporada ${season} Episódio ${episode} - Frame ${currentFrameNumber}`;
+  const postText = `Temporada ${season} Episódio ${episode} - Frame ${currentFrameNumber} de ${totalFrames}`;
 
   await agent.post({
     text: postText,
